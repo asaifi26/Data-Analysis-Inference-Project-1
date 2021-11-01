@@ -1,0 +1,163 @@
+#Math 189 Homework 1 Code
+#Authors: Antony Sikorski, Ayaan Saifi
+
+#--------------------Setup-------------------- 
+
+#installing ggplot2
+install.packages('ggplot2',repos="http://cran.rstudio.com/")
+library(ggplot2)
+
+#Data setup and removing smoking errors with a value greater than 1
+data = read.table("babies.txt", header=TRUE)
+head(data)
+summary(data)
+errors = which(data$smoke>1)
+data = data[-errors,]
+
+
+#Setting Variables
+smoker.ind = which(data['smoke'] == 1)
+data_smoker = data[smoker.ind,]
+nonsmoker.ind = which(data['smoke'] == 0)
+data_nonsmoker = data[nonsmoker.ind,]
+#Combining the data into one data frame
+bwt = data.frame(type=c( rep("Smoker", nrow(data_smoker)), rep("Non-Smoker", nrow(data_nonsmoker))), 
+                 value=c(data_smoker$bwt, data_nonsmoker$bwt))
+
+
+
+#--------------------Problem 1--------------------
+
+#summary of the data
+summary(data_smoker) 
+summary(data_nonsmoker)
+#means and standard deviations of smoker and nonsmoker bwt distributions
+summary(data_smoker$bwt)
+summary(data_nonsmoker$bwt)
+mean(data_smoker$bwt)
+sd(data_smoker$bwt)
+mean(data_nonsmoker$bwt)
+sd(data_nonsmoker$bwt)
+
+
+
+#--------------------Problem 2--------------------
+
+#calling ggplot2 library
+library(ggplot2)
+
+#Histogram for smoker baby bwt distribution
+ggplot(data_smoker, aes(bwt)) + geom_histogram(alpha = 0.6, 
+                                               colour = "red", 
+                                               fill = "pink", 
+                                               binwidth = 7) +
+  labs(title = "Smoker Birthweight", x = "Bwt (Oz)", y = "Freq") + xlim(c(60,180)) + ylim(c(0,170))
+
+
+#Histogram for non-smoker baby bwt distribution
+ggplot(data_nonsmoker, aes(bwt)) + geom_histogram(alpha = 0.6, 
+                                                  colour = "blue", 
+                                                  fill = "lightblue", 
+                                                  binwidth = 7) +
+  labs(title = "Non-Smoker Birthweight", x = "Bwt (Oz)", y = "Freq") + xlim(c(60,180)) + ylim(c(0,170))
+
+#Combined box plot for both smoker and non-smoker bwt distributions
+combined_box = ggplot(bwt, aes(x=value, fill=type)) + geom_boxplot() +
+  ggtitle("Birthweight") + labs(y=" ", x="Bwt (Oz)") +
+  scale_fill_manual(values=c("#56B4E9", "#FF6666"))
+print(combined_box)
+
+#T Test to see if the difference in means is significant
+res <- t.test(data_smoker$bwt, data_nonsmoker$bwt)
+res
+#super small p-value shows there is clearly a significant difference
+
+
+
+#--------------------Problem 3--------------------
+
+#cutoff for a low weight baby is set at <= 88 ounces
+#finding all entries for low weights in smoker data 
+low.weight.smoker = nrow(data_smoker[data_smoker$bwt <= 88,])
+#length of smoker data
+smoker.length = length(data_smoker$bwt)
+#percentage of babies who are low weight in smoker data (frequency)
+smoker.lowfreq = low.weight.smoker/smoker.length
+#same process repeated for nonsmoker data to find frequency of low weight babies 
+low.weight.nonsmoker = nrow(data_nonsmoker[data_nonsmoker$bwt <= 88,])
+nonsmoker.length = length(data_nonsmoker$bwt)
+nonsmoker.lowfreq = low.weight.nonsmoker/nonsmoker.length
+#Printing final results
+smoker.lowfreq
+nonsmoker.lowfreq
+
+#same process repeated with a cutoff at 83 ounces 
+low.weight.smoker.under = nrow(data_smoker[data_smoker$bwt <= 83,])
+smoker.length.under = length(data_smoker$bwt)
+smoker.lowfreq.under = low.weight.smoker.under/smoker.length.under
+low.weight.nonsmoker.under = nrow(data_nonsmoker[data_nonsmoker$bwt <= 83,])
+nonsmoker.length.under = length(data_nonsmoker$bwt)
+nonsmoker.lowfreq.under = low.weight.nonsmoker.under/nonsmoker.length.under
+smoker.lowfreq.under
+nonsmoker.lowfreq.under
+
+#same process repeated with a cutoff at 93 ounces
+low.weight.smoker.over = nrow(data_smoker[data_smoker$bwt <= 93,])
+smoker.length.over = length(data_smoker$bwt)
+smoker.lowfreq.over = low.weight.smoker.over/smoker.length.over
+low.weight.nonsmoker.over = nrow(data_nonsmoker[data_nonsmoker$bwt <= 93,])
+nonsmoker.length.over = length(data_nonsmoker$bwt)
+nonsmoker.lowfreq.over = low.weight.nonsmoker.over/nonsmoker.length.over
+smoker.lowfreq.over
+nonsmoker.lowfreq.over
+
+#Creating a combined density plot 
+combined_density = ggplot(bwt, aes(x=value, fill=type)) +
+  geom_density(alpha=0.5) + ggtitle("Birthweight") + labs(y="Freq.", x="Bwt (Oz)") +
+  geom_vline(aes(xintercept = 88)) +
+  geom_vline(aes(xintercept = 83)) + 
+  geom_vline(aes(xintercept = 93)) +
+  geom_text(x = 88, y = 0.02, label = "88 oz") + 
+  geom_text(x = 83, y = 0.018, label = "83 oz") + 
+  geom_text(x = 93, y = 0.022, label = "93 oz") +
+  scale_fill_manual(values=c("#56B4E9", "#FF6666"))
+#cutoff lines were set to visually demonstrate the frequency of low weight 
+#babies for each distribution 
+print(combined_density)
+
+
+
+#--------------------Advanced Analysis--------------------
+
+#removing all irregular/error values (not just from bwt this time)
+#HIDE THIS FIRST PART include = FALSE
+cleandata = data[-c(which(data$gestation==999), 
+                    which(data$age==99),  
+                    which(data$height==99), 
+                    which(data$weight==999)),]
+
+
+smokerXX.ind = which(cleandata['smoke'] == 1)
+data_smokerXX = cleandata[smokerXX.ind,]
+nonsmokerXX.ind = which(cleandata['smoke'] == 0)
+data_nonsmokerXX = cleandata[nonsmokerXX.ind,]
+
+gest = data.frame(type=c( rep("Smoker", nrow(data_smokerXX)), rep("Non-Smoker", nrow(data_nonsmokerXX))), 
+                 value=c(data_smokerXX$gestation, data_nonsmokerXX$gestation))
+                 
+#gestation vs bwt scatter 
+scatter.smooth(x=cleandata$gestation, y=cleandata$bwt, 
+               main='Gestation vs. Birthweight', xlab = 'Gestation Period (days)', ylab = 'Birth weight (oz.)')
+               
+#Combined box plot for both smoker and non-smoker gestation distributions
+combined_box = ggplot(gest, aes(x=value, fill=type)) + geom_boxplot() +
+  ggtitle("Gestation vs Smoking") + labs(y=" ", x="Gestation Period (days)") +
+  scale_fill_manual(values=c("#56B4E9", "#FF6666"))
+print(combined_box)
+
+#T Test to see if the difference in gestation means between smokers 
+# and non smokers is significant
+res <- t.test(data_smokerXX$gestation, data_nonsmokerXX$gestation)
+res
+
+#All done!
