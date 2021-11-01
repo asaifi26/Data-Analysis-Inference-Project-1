@@ -1,4 +1,4 @@
-#Math 189 Homework 1 Code
+#Math 189 Project 1 Code
 #Authors: Antony Sikorski, Ayaan Saifi
 
 #--------------------Setup-------------------- 
